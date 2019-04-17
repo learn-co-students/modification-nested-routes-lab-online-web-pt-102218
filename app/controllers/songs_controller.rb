@@ -1,3 +1,4 @@
+require 'pry'
 class SongsController < ApplicationController
   def index
     if params[:artist_id]
@@ -26,12 +27,24 @@ class SongsController < ApplicationController
 
   def new
     @song = Song.new
+    if params[:artist_id] 
+      if Artist.find_by(id:params[:artist_id])
+        @song.artist_id= params[:artist_id]
+      else
+        redirect_to artists_path
+      end
+    end
+
+    
   end
 
   def create
     @song = Song.new(song_params)
+    
+    
 
     if @song.save
+      #binding.pry
       redirect_to @song
     else
       render :new
@@ -39,7 +52,18 @@ class SongsController < ApplicationController
   end
 
   def edit
-    @song = Song.find(params[:id])
+    @song = Song.find_by(id:params[:id])
+
+    if params[:artist_id]
+      #binding.pry
+      if @song
+        if !Artist.find_by(id:params[:artist_id])
+          redirect_to artists_path
+        end
+      else
+        redirect_to artist_songs_path(Artist.find_by(id:params[:artist_id]))
+      end
+    end
   end
 
   def update
@@ -64,7 +88,7 @@ class SongsController < ApplicationController
   private
 
   def song_params
-    params.require(:song).permit(:title, :artist_name)
+    params.require(:song).permit(:title, :artist_name, :artist_id)
   end
 end
 
